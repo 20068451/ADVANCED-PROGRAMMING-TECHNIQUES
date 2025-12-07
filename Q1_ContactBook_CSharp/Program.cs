@@ -69,7 +69,6 @@ namespace ContactBookApp
             Console.WriteLine("Birthdate  : " + BirthDate.ToShortDateString());
         }
 
-        // Method to get a summary string
         public string GetSummary()
         {
             return FirstName + " " + LastName + " (" + MobileNumber + ")";
