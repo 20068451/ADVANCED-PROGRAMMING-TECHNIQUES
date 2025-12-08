@@ -76,6 +76,15 @@ namespace FileExtensionInfoApp
                 Console.WriteLine("Try another extension.");
             }
         }
+
+        public void ShowAllExtensions()
+        {
+            Console.WriteLine("All Supported Extensions:");
+            foreach (var key in extensionInfo.Keys)
+            {
+                Console.WriteLine(" - " + key);
+            }
+        }
     }
 
     class Program
@@ -91,6 +100,7 @@ namespace FileExtensionInfoApp
             {
                 Console.WriteLine("\nFile Extension Info System");
                 Console.WriteLine("1: Look up a file extension");
+                Console.WriteLine("2: Show all extensions");
                 Console.WriteLine("0: Exit");
                 Console.Write("Enter choice: ");
                 
@@ -102,6 +112,9 @@ namespace FileExtensionInfoApp
                         Console.Write("Enter file extension (e.g. .mp4 or mp4): ");
                         string input = Console.ReadLine();
                         system.ShowExtensionInfo(input);
+                        break;
+                    case "2":
+                        system.ShowAllExtensions();
                         break;
                     case "0":
                         exit = true;
