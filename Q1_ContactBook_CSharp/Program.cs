@@ -78,25 +78,29 @@ namespace ContactBookApp
     public class ContactBook
     {
         private List<Contact> contacts = new List<Contact>();
+
         public ContactBook()
         {
             SampleContacts();
         }
+
         public void AddContact(Contact contact)
         {
             contacts.Add(contact);
         }
+
         public void AddContact(string firstName, string lastName, string company,
                                string mobileNumber, string email, DateTime birthDate)
         {
             Contact c = new Contact(firstName, lastName, company, mobileNumber, email, birthDate);
             contacts.Add(c);
         }
+
         public void ShowAllContacts()
         {
             if (contacts.Count == 0)
             {
-                Console.WriteLine("No contacts");
+                Console.WriteLine("No contacts in the contact book.");
                 return;
             }
 
@@ -106,7 +110,8 @@ namespace ContactBookApp
                 Console.WriteLine((i + 1) + ": " + contacts[i].GetSummary());
             }
         }
-                public void ShowContactDetails(int index)
+
+        public void ShowContactDetails(int index)
         {
             if (index < 0 || index >= contacts.Count)
             {
@@ -117,7 +122,84 @@ namespace ContactBookApp
             Console.WriteLine("----- Contact Details -----");
             contacts[index].ShowDetails();
         }
-                public static bool IsValidMobile(string mobile)
+
+        public void UpdateContact(int index)
+        {
+            if (index < 0 || index >= contacts.Count)
+            {
+                Console.WriteLine("Invalid contact number.");
+                return;
+            }
+
+            Contact c = contacts[index];
+
+            Console.WriteLine("Leave field empty to keep current value.");
+
+            Console.Write("First Name (" + c.FirstName + "): ");
+            string input = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(input))
+                c.FirstName = input;
+
+            Console.Write("Last Name (" + c.LastName + "): ");
+            input = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(input))
+                c.LastName = input;
+
+            Console.Write("Company (" + c.Company + "): ");
+            input = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(input))
+                c.Company = input;
+
+            Console.Write("Mobile Number (" + c.MobileNumber + "): ");
+            input = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(input))
+            {
+                if (IsValidMobile(input))
+                {
+                    c.MobileNumber = input;
+                }
+                else
+                {
+                    Console.WriteLine("Invalid mobile number. Keeping old number.");
+                }
+            }
+
+            Console.Write("Email (" + c.Email + "): ");
+            input = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(input))
+                c.Email = input;
+
+            Console.Write("Birthdate (" + c.BirthDate.ToShortDateString() + ") (e.g. 12/31/1990): ");
+            input = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(input))
+            {
+                DateTime newBirth;
+                if (DateTime.TryParse(input, out newBirth))
+                {
+                    c.BirthDate = newBirth;
+                }
+                else
+                {
+                    Console.WriteLine("Invalid date. Keeping old date.");
+                }
+            }
+
+            Console.WriteLine("Contact Updated.");
+        }
+
+        public void DeleteContact(int index)
+        {
+            if (index < 0 || index >= contacts.Count)
+            {
+                Console.WriteLine("Invalid Contact Number.");
+                return;
+            }
+
+            contacts.RemoveAt(index);
+            Console.WriteLine("Contact Deleted.");
+        }
+
+        public static bool IsValidMobile(string mobile)
         {
             if (mobile.Length != 9)
                 return false;
@@ -133,6 +215,7 @@ namespace ContactBookApp
 
             return true;
         }
+
         private void SampleContacts()
         {
             AddContact("Wai", "Aung", "Dublin Business School", "799899361", "waiaung@dbs.ie", new DateTime(1990, 1, 1));
@@ -157,6 +240,7 @@ namespace ContactBookApp
             AddContact("Chan", "Chan", "DBS", "799899380", "chanchan@dbs.ie", new DateTime(1988, 7, 7));
         }
     }
+
     class Program
     {
         static void Main(string[] args)
@@ -179,26 +263,26 @@ namespace ContactBookApp
                         contactBook.ShowAllContacts();
                         break;
                     case "3":
-                        Console.WriteLine("Contact Details");
+                        ShowContactDetailsUI(contactBook);
                         break;
                     case "4":
-                        Console.WriteLine("Update Contact");
+                        UpdateContactUI(contactBook);
                         break;
                     case "5":
-                        Console.WriteLine("Delete Contact");
+                        DeleteContactUI(contactBook);
                         break;
                     case "0":
                         exit = true;
                         break;
                     default:
-                        Console.WriteLine("Invalid");
+                        Console.WriteLine("Invalid Choice. Please Try Again.");
                         break;
                 }
 
                 Console.WriteLine();
             }
 
-            Console.WriteLine("Thanks");
+            Console.WriteLine("Thanks!");
         }
 
         static void ShowMenu()
@@ -234,7 +318,7 @@ namespace ContactBookApp
                 mobile = Console.ReadLine();
                 if (ContactBook.IsValidMobile(mobile))
                     break;
-                Console.WriteLine("Invalid Mobile Number");
+                Console.WriteLine("Invalid Mobile Number. Try Again.");
             }
 
             Console.Write("Email: ");
@@ -252,6 +336,45 @@ namespace ContactBookApp
 
             contactBook.AddContact(firstName, lastName, company, mobile, email, birthDate);
             Console.WriteLine("Contact Added.");
+        }
+
+        static int AskForIndex()
+        {
+            Console.Write("Enter Contact Number: ");
+            string input = Console.ReadLine();
+            int number;
+            if (int.TryParse(input, out number))
+            {
+                return number - 1;
+            }
+            else
+            {
+                return -1;
+            }
+        }
+
+        static void ShowContactDetailsUI(ContactBook contactBook)
+        {
+            Console.WriteLine("----- Show Contact Details -----");
+            contactBook.ShowAllContacts();
+            int index = AskForIndex();
+            contactBook.ShowContactDetails(index);
+        }
+
+        static void UpdateContactUI(ContactBook contactBook)
+        {
+            Console.WriteLine("----- Update Contact -----");
+            contactBook.ShowAllContacts();
+            int index = AskForIndex();
+            contactBook.UpdateContact(index);
+        }
+
+        static void DeleteContactUI(ContactBook contactBook)
+        {
+            Console.WriteLine("----- Delete Contact -----");
+            contactBook.ShowAllContacts();
+            int index = AskForIndex();
+            contactBook.DeleteContact(index);
         }
     }
 }
