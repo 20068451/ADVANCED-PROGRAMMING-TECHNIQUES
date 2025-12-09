@@ -1,3 +1,9 @@
+import socket
+import json
+
+HOST = "127.0.0.1"
+PORT = 5000
+
 def get_name():
     name = input("Full Name: ").strip()
     return name
@@ -41,6 +47,20 @@ def get_start_month():
             return int(month)
         print("Enter number")
 
+def send_application(app_data):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect((HOST, PORT))
+    
+    json_data = json.dumps(app_data)
+    sock.send(json_data.encode('utf-8'))
+    
+    response = sock.recv(4096).decode('utf-8')
+    result = json.loads(response)
+    
+    sock.close()
+    
+    return result
+
 def main():
     print("DBS Admission")
     
@@ -51,12 +71,30 @@ def main():
     start_year = get_start_year()
     start_month = get_start_month()
     
-    print("\nApplication Data:")
-    print(f"Name: {name}")
-    print(f"Address: {address}")
-    print(f"Qualifications: {qualifications}")
-    print(f"Course: {course}")
-    print(f"Start: {start_month}/{start_year}")
+    app_data = {
+        "name": name,
+        "address": address,
+        "qualifications": qualifications,
+        "course": course,
+        "start_year": start_year,
+        "start_month": start_month
+    }
+    
+    print("\nSending to server...")
+    
+    try:
+        result = send_application(app_data)
+        
+        if result["status"] == "ok":
+            print(f"\nApplication Successful!")
+            print(f"Registration Number: {result['registration_number']}")
+        else:
+            print("\nApplication Failed")
+    
+    except ConnectionRefusedError:
+        print("\nCannot connect to server")
+    except Exception as e:
+        print(f"\nError: {e}")
 
 if __name__ == "__main__":
     main()

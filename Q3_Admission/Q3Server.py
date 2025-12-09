@@ -1,6 +1,10 @@
+import socket
+import json
 import sqlite3
 from datetime import datetime
 
+HOST = "127.0.0.1"
+PORT = 5000
 DB_NAME = "dbs_admissions.db"
 
 def init_database():
@@ -13,17 +17,18 @@ def init_database():
 def generate_registration_number(app_id, start_year):
     return f"DBS{start_year}-{app_id:04d}"
 
-def add_application(name, address, qualifications, course, start_year, start_month):
+def save_application(app_data):
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
     
-    created_at = datetime.now().isoformat()
+    now = datetime.now().isoformat()
     
     cur.execute("INSERT INTO applications (name, address, qualifications, course, start_year, start_month, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                (name, address, qualifications, course, start_year, start_month, created_at))
+                (app_data["name"], app_data["address"], app_data["qualifications"], 
+                 app_data["course"], app_data["start_year"], app_data["start_month"], now))
     
     app_id = cur.lastrowid
-    reg_no = generate_registration_number(app_id, start_year)
+    reg_no = generate_registration_number(app_id, app_data["start_year"])
     
     cur.execute("UPDATE applications SET registration_number = ? WHERE id = ?", (reg_no, app_id))
     
@@ -32,20 +37,30 @@ def add_application(name, address, qualifications, course, start_year, start_mon
     
     return reg_no
 
+def handle_client(client_socket):
+    data = client_socket.recv(4096).decode('utf-8')
+    app_data = json.loads(data)
+    
+    reg_no = save_application(app_data)
+    
+    response = {"status": "ok", "registration_number": reg_no}
+    client_socket.send(json.dumps(response).encode('utf-8'))
+    
+    client_socket.close()
+
 def main():
     init_database()
     
-    name = "Wai Aung"
-    address = "Dublin 12"
-    qualifications = "BSc Computer Science"
-    course = "MSc in Cyber Security"
-    start_year = 2025
-    start_month = 9
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.bind((HOST, PORT))
+    server.listen(1)
     
-    reg_no = add_application(name, address, qualifications, course, start_year, start_month)
+    print(f"Server running on {HOST}:{PORT}")
     
-    print(f"Application Added!")
-    print(f"Registration Number: {reg_no}")
+    while True:
+        client_socket, address = server.accept()
+        print(f"Client connected from {address}")
+        handle_client(client_socket)
 
 if __name__ == "__main__":
     main()
